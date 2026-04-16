@@ -1,6 +1,7 @@
 # pyright: reportMissingImports=false, reportInvalidTypeForm=false
 
 import bpy
+from bpy.props import EnumProperty
 
 
 class SIM_OT_ToggleDirection(bpy.types.Operator):
@@ -38,20 +39,63 @@ class SIM_OT_PickFollowerBone(bpy.types.Operator):
     bl_idname = "object.sim_pick_follower_bone"
     bl_label = "Pick Follower Bone"
     bl_options = {'REGISTER', 'UNDO'}
+
+    def _bone_items(self, context):
+        props = context.scene.align_props
+        if props.active_pair_index < 0:
+            return []
+        pair = props.alignment_pairs[props.active_pair_index]
+
+        arm_obj = None
+        if pair.follower_obj and pair.follower_obj.type == 'ARMATURE':
+            arm_obj = pair.follower_obj
+        elif context.mode == 'POSE' and context.active_object and context.active_object.type == 'ARMATURE':
+            arm_obj = context.active_object
+
+        if not arm_obj:
+            return []
+
+        return [(b.name, b.name, "") for b in arm_obj.pose.bones]
+
+    bone_name: EnumProperty(name="Bone", items=_bone_items)
     
     def execute(self, context):
         props = context.scene.align_props
-        if props.active_pair_index >= 0 and context.active_pose_bone:
-            pair = props.alignment_pairs[props.active_pair_index]
-            # In Pose Mode, set both the armature and the bone
-            if context.mode == 'POSE' and context.active_object and context.active_object.type == 'ARMATURE':
-                pair.follower_obj = context.active_object
-                pair.follower_bone = context.active_pose_bone.name
-            else:
-                # Otherwise, only set the bone if follower_obj is already an armature
-                if pair.follower_obj and pair.follower_obj.type == 'ARMATURE':
-                    pair.follower_bone = context.active_pose_bone.name
+        if props.active_pair_index < 0:
+            return {'FINISHED'}
+
+        pair = props.alignment_pairs[props.active_pair_index]
+
+        # In Pose Mode, set both the armature and the bone (existing behavior).
+        if context.mode == 'POSE' and context.active_object and context.active_object.type == 'ARMATURE' and context.active_pose_bone:
+            pair.follower_obj = context.active_object
+            pair.follower_bone = context.active_pose_bone.name
+            return {'FINISHED'}
+
+        # Otherwise, only set the bone if follower_obj is already an armature (existing behavior).
+        if pair.follower_obj and pair.follower_obj.type == 'ARMATURE' and self.bone_name:
+            pair.follower_bone = self.bone_name
         return {'FINISHED'}
+
+    def invoke(self, context, event):
+        props = context.scene.align_props
+        if props.active_pair_index < 0:
+            return {'CANCELLED'}
+
+        pair = props.alignment_pairs[props.active_pair_index]
+
+        # If the active pose bone is available, assign immediately (practical picker behavior).
+        if context.mode == 'POSE' and context.active_object and context.active_object.type == 'ARMATURE' and context.active_pose_bone:
+            pair.follower_obj = context.active_object
+            pair.follower_bone = context.active_pose_bone.name
+            return {'FINISHED'}
+
+        if not (pair.follower_obj and pair.follower_obj.type == 'ARMATURE'):
+            return {'CANCELLED'}
+
+        if pair.follower_bone:
+            self.bone_name = pair.follower_bone
+        return context.window_manager.invoke_search_popup(self)
 
 
 class SIM_OT_PickTarget(bpy.types.Operator):
@@ -73,20 +117,63 @@ class SIM_OT_PickTargetBone(bpy.types.Operator):
     bl_idname = "object.sim_pick_target_bone"
     bl_label = "Pick Target Bone"
     bl_options = {'REGISTER', 'UNDO'}
+
+    def _bone_items(self, context):
+        props = context.scene.align_props
+        if props.active_pair_index < 0:
+            return []
+        pair = props.alignment_pairs[props.active_pair_index]
+
+        arm_obj = None
+        if pair.target_obj and pair.target_obj.type == 'ARMATURE':
+            arm_obj = pair.target_obj
+        elif context.mode == 'POSE' and context.active_object and context.active_object.type == 'ARMATURE':
+            arm_obj = context.active_object
+
+        if not arm_obj:
+            return []
+
+        return [(b.name, b.name, "") for b in arm_obj.pose.bones]
+
+    bone_name: EnumProperty(name="Bone", items=_bone_items)
     
     def execute(self, context):
         props = context.scene.align_props
-        if props.active_pair_index >= 0 and context.active_pose_bone:
-            pair = props.alignment_pairs[props.active_pair_index]
-            # In Pose Mode, set both the armature and the bone
-            if context.mode == 'POSE' and context.active_object and context.active_object.type == 'ARMATURE':
-                pair.target_obj = context.active_object
-                pair.target_bone = context.active_pose_bone.name
-            else:
-                # Otherwise, only set the bone if target_obj is already an armature
-                if pair.target_obj and pair.target_obj.type == 'ARMATURE':
-                    pair.target_bone = context.active_pose_bone.name
+        if props.active_pair_index < 0:
+            return {'FINISHED'}
+
+        pair = props.alignment_pairs[props.active_pair_index]
+
+        # In Pose Mode, set both the armature and the bone (existing behavior).
+        if context.mode == 'POSE' and context.active_object and context.active_object.type == 'ARMATURE' and context.active_pose_bone:
+            pair.target_obj = context.active_object
+            pair.target_bone = context.active_pose_bone.name
+            return {'FINISHED'}
+
+        # Otherwise, only set the bone if target_obj is already an armature (existing behavior).
+        if pair.target_obj and pair.target_obj.type == 'ARMATURE' and self.bone_name:
+            pair.target_bone = self.bone_name
         return {'FINISHED'}
+
+    def invoke(self, context, event):
+        props = context.scene.align_props
+        if props.active_pair_index < 0:
+            return {'CANCELLED'}
+
+        pair = props.alignment_pairs[props.active_pair_index]
+
+        # If the active pose bone is available, assign immediately (practical picker behavior).
+        if context.mode == 'POSE' and context.active_object and context.active_object.type == 'ARMATURE' and context.active_pose_bone:
+            pair.target_obj = context.active_object
+            pair.target_bone = context.active_pose_bone.name
+            return {'FINISHED'}
+
+        if not (pair.target_obj and pair.target_obj.type == 'ARMATURE'):
+            return {'CANCELLED'}
+
+        if pair.target_bone:
+            self.bone_name = pair.target_bone
+        return context.window_manager.invoke_search_popup(self)
 
 
 class SIM_OT_GetFollowerSelection(bpy.types.Operator):
@@ -123,4 +210,3 @@ class SIM_OT_GetTargetSelection(bpy.types.Operator):
                 else:
                     pair.target_bone = ""
         return {'FINISHED'}
-
