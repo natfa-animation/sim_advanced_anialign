@@ -39,6 +39,7 @@ class SIM_OT_PickFollowerBone(bpy.types.Operator):
     bl_idname = "object.sim_pick_follower_bone"
     bl_label = "Pick Follower Bone"
     bl_options = {'REGISTER', 'UNDO'}
+    bl_property = "bone_name"
 
     def _bone_items(self, context):
         props = context.scene.align_props
@@ -95,7 +96,8 @@ class SIM_OT_PickFollowerBone(bpy.types.Operator):
 
         if pair.follower_bone:
             self.bone_name = pair.follower_bone
-        return context.window_manager.invoke_search_popup(self)
+        context.window_manager.invoke_search_popup(self)
+        return {'RUNNING_MODAL'}
 
 
 class SIM_OT_PickTarget(bpy.types.Operator):
@@ -117,6 +119,7 @@ class SIM_OT_PickTargetBone(bpy.types.Operator):
     bl_idname = "object.sim_pick_target_bone"
     bl_label = "Pick Target Bone"
     bl_options = {'REGISTER', 'UNDO'}
+    bl_property = "bone_name"
 
     def _bone_items(self, context):
         props = context.scene.align_props
@@ -173,7 +176,8 @@ class SIM_OT_PickTargetBone(bpy.types.Operator):
 
         if pair.target_bone:
             self.bone_name = pair.target_bone
-        return context.window_manager.invoke_search_popup(self)
+        context.window_manager.invoke_search_popup(self)
+        return {'RUNNING_MODAL'}
 
 
 class SIM_OT_GetFollowerSelection(bpy.types.Operator):
@@ -209,4 +213,24 @@ class SIM_OT_GetTargetSelection(bpy.types.Operator):
                     pair.target_bone = context.active_pose_bone.name
                 else:
                     pair.target_bone = ""
+
+                # If target is an armature, auto-fill a default bone (closest to the follower object)
+                # only when the bone field is currently empty (manual override remains possible).
+                if (
+                    pair.target_obj
+                    and pair.target_obj.type == 'ARMATURE'
+                    and not pair.target_bone
+                    and pair.follower_obj
+                ):
+                    follower_loc = pair.follower_obj.matrix_world.translation
+                    best_bone_name = None
+                    best_dist_sq = None
+                    for pose_bone in pair.target_obj.pose.bones:
+                        bone_world_loc = pair.target_obj.matrix_world @ pose_bone.head
+                        dist_sq = (bone_world_loc - follower_loc).length_squared
+                        if best_dist_sq is None or dist_sq < best_dist_sq:
+                            best_dist_sq = dist_sq
+                            best_bone_name = pose_bone.name
+                    if best_bone_name:
+                        pair.target_bone = best_bone_name
         return {'FINISHED'}
