@@ -71,6 +71,7 @@ class SIMAnialignPanel(bpy.types.Panel):
             if pair.follower_obj and pair.follower_obj.type == 'ARMATURE':
                 row = box.row(align=True)
                 row.prop_search(pair, "follower_bone", pair.follower_obj.pose, "bones", text="Bone")
+                row.operator("object.sim_pick_follower_bone", icon='EYEDROPPER', text="")
             
             # Target
             row = box.row(align=True)
@@ -81,6 +82,7 @@ class SIMAnialignPanel(bpy.types.Panel):
             if pair.target_obj and pair.target_obj.type == 'ARMATURE':
                 row = box.row(align=True)
                 row.prop_search(pair, "target_bone", pair.target_obj.pose, "bones", text="Bone")
+                row.operator("object.sim_pick_target_bone", icon='EYEDROPPER', text="")
         
         # Animation settings
         row = layout.row(align=True)
