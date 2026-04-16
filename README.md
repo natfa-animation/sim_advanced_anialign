@@ -4,7 +4,8 @@ Aligns a "follower" object/bone to a "target" object/bone over a frame range, ke
 
 ## Screenshot
 
-![SIM Anialign Enhanced UI](docs/ui.png)
+<img width="587" height="559" alt="Screenshot 2026-04-16 225541" src="https://github.com/user-attachments/assets/96d6296c-3f3a-478d-aada-cfe12e0e9a58" />
+
 
 ## Install
 
