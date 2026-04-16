@@ -2,6 +2,10 @@
 
 Aligns a "follower" object/bone to a "target" object/bone over a frame range, keyframing location and rotation on each processed frame. Includes preset save/load and an optional helper-based workflow ("Like it's linked!").
 
+## Screenshot
+
+![SIM Anialign Enhanced UI](docs/ui.png)
+
 ## Install
 
 1. Put the add-on in a folder (e.g. `sim_advanced_anialign/`) containing `__init__.py` and the module files.
@@ -17,6 +21,7 @@ Aligns a "follower" object/bone to a "target" object/bone over a frame range, ke
 
 The UI manages a list of alignment pairs. Each pair has:
 
+- `Name`: optional custom display name for the pair (shown in the list). If empty, the UI shows `FollowerObject follows TargetObject`.
 - `Active`: enables/disables the pair for runs.
 - `Follower`: an object, and optionally a bone name (only valid when the follower object is an Armature).
 - `Target`: an object, and optionally a bone name (only valid when the target object is an Armature).
@@ -58,7 +63,7 @@ The UI manages a list of alignment pairs. Each pair has:
 
 Save/Load stores:
 
-- The pair list (by object name + bone name + active flag)
+- The pair list (custom name, object name + bone name, active flag)
 - `Start Frame`, `End Frame`, `Frame Step`
 - `Delete Helper`
 - `Forward/Backward` direction toggle
@@ -68,6 +73,9 @@ Save/Load stores:
 - Requires a visible `VIEW_3D` area in the current screen layout; otherwise the operators cancel with an error.
 - If a bone name is provided but the corresponding object is not an Armature, the operators cancel with an error.
 - If a specified bone name is not found, that pair is skipped for that frame (warning is reported).
+- Bone picking:
+  - The Bone dropper opens a searchable popup of bones for the pair's Armature and assigns the selected bone name.
+  - When using `Get Sel.` on Target and the chosen target is an Armature, a default target bone is auto-filled (the closest bone to the follower object) only if the Bone field is empty.
 
 ## Project structure (package add-on)
 
@@ -82,4 +90,3 @@ Save/Load stores:
 ## Notes
 
 - This add-on depends on Blender's bundled Python modules (`bpy`, `mathutils`, `bpy_extras`) and is intended to run inside Blender.
-
