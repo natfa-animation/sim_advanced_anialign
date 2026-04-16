@@ -12,11 +12,12 @@ class SIM_UL_AlignmentPairs(bpy.types.UIList):
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             row = layout.row(align=True)
             row.prop(item, "active", text="")
-            left = row.row(align=True)
-            left.alignment = 'LEFT'
-            left.label(text=f"{item.follower_obj.name if item.follower_obj else 'None'}")
-            left.label(text="â†’")
-            left.label(text=f"{item.target_obj.name if item.target_obj else 'None'}")
+            display_name = (item.custom_name or "").strip()
+            if not display_name:
+                follower_name = item.follower_obj.name if item.follower_obj else "None"
+                target_name = item.target_obj.name if item.target_obj else "None"
+                display_name = f"{follower_name} follows {target_name}"
+            row.label(text=display_name)
 
 
 class SIMAnialignPanel(bpy.types.Panel):
@@ -58,29 +59,28 @@ class SIMAnialignPanel(bpy.types.Panel):
             pair = props.alignment_pairs[props.active_pair_index]
             box = layout.box()
             
+            row = box.row(align=True)
+            row.prop(pair, "custom_name", text="Name")
+            
             # Follower
             row = box.row(align=True)
             row.label(text="Follower:")
             row.prop(pair, "follower_obj", text="")
-            row.operator("object.sim_pick_follower", icon='EYEDROPPER', text="")
-            row.operator("object.sim_get_follower_selection", icon='EYEDROPPER', text="")
+            row.operator("object.sim_get_follower_selection", text="Get Sel.")
             
             if pair.follower_obj and pair.follower_obj.type == 'ARMATURE':
                 row = box.row(align=True)
                 row.prop_search(pair, "follower_bone", pair.follower_obj.pose, "bones", text="Bone")
-                row.operator("object.sim_pick_follower_bone", icon='EYEDROPPER', text="")
             
             # Target
             row = box.row(align=True)
             row.label(text="Target:")
             row.prop(pair, "target_obj", text="")
-            row.operator("object.sim_pick_target", icon='EYEDROPPER', text="")
-            row.operator("object.sim_get_target_selection", icon='EYEDROPPER', text="")
+            row.operator("object.sim_get_target_selection", text="Get Sel.")
             
             if pair.target_obj and pair.target_obj.type == 'ARMATURE':
                 row = box.row(align=True)
                 row.prop_search(pair, "target_bone", pair.target_obj.pose, "bones", text="Bone")
-                row.operator("object.sim_pick_target_bone", icon='EYEDROPPER', text="")
         
         # Animation settings
         row = layout.row(align=True)
@@ -98,4 +98,3 @@ class SIMAnialignPanel(bpy.types.Panel):
         row = layout.row(align=True)
         row.operator("object.sim_create_ze_object", text="Run 'Like it's linked!'")
         row.prop(props, "delete_helper", text="Delete Helper")
-

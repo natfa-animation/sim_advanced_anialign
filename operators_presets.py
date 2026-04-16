@@ -24,6 +24,7 @@ class SIM_OT_SavePreset(bpy.types.Operator, ExportHelper):
         
         for pair in props.alignment_pairs:
             pair_data = {
+                'name': pair.custom_name,
                 'follower': pair.follower_obj.name if pair.follower_obj else "",
                 'follower_bone': pair.follower_bone,
                 'target': pair.target_obj.name if pair.target_obj else "",
@@ -66,6 +67,7 @@ class SIM_OT_LoadPreset(bpy.types.Operator, ImportHelper):
         
         for pair_data in preset_data.get('pairs', []):
             new_pair = props.alignment_pairs.add()
+            new_pair.custom_name = pair_data.get('name', "")
             if pair_data['follower']:
                 new_pair.follower_obj = bpy.data.objects.get(pair_data['follower'])
             if pair_data['target']:
@@ -82,4 +84,3 @@ class SIM_OT_LoadPreset(bpy.types.Operator, ImportHelper):
         
         self.report({'INFO'}, f"Preset loaded from {self.filepath}")
         return {'FINISHED'}
-

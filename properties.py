@@ -16,6 +16,7 @@ from bpy.props import (
 # -------------------------- #
 
 class AlignmentPair(bpy.types.PropertyGroup):
+    custom_name: StringProperty(name="Name", default="")
     follower_obj: PointerProperty(type=bpy.types.Object)
     follower_bone: StringProperty()
     target_obj: PointerProperty(type=bpy.types.Object)
@@ -31,4 +32,3 @@ class SIMAnialignProperties(bpy.types.PropertyGroup):
     frame_step: IntProperty(name="Frame Step", default=1, min=1)
     delete_helper: BoolProperty(name="Delete Helper", default=False)
     reverse_direction: BoolProperty(name="Direction", default=False, description="Forward (False) or Backward (True)")
-
